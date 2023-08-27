@@ -10,9 +10,9 @@ export const fetchRepos = async (
       headers: {
         "X-GitHub-Api-Version": "2022-11-28",
       },
-      q: `${q} in:name,description,topics,readme stars:>=${starsFilter ?? 0} ${
-        languageFilter ?? ""
-      }`,
+      q: `${q} in:name,description,topics,readme stars:>=${
+        starsFilter ?? 0
+      } language:${languageFilter ?? ""}`,
       sort: sortedBy,
     });
     return response.data.items;

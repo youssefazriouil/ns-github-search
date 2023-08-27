@@ -4,23 +4,26 @@ import starsActiveIcon from "../assets/stars-active.svg";
 import starsIcon from "../assets/stars.svg";
 import filterIcon from "../assets/filterIcon.svg";
 import Image from "next/image";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Octokit } from "@octokit/rest";
 import { useQuery } from "react-query";
 import { fetchRepos } from "@/utils/fetchRepos";
-import { QueryConfig } from "@/utils/types";
+import { QueryConfig, SortedBy } from "@/utils/types";
 import { InferGetStaticPropsType } from "next";
+import { useQueryHistory } from "@/hooks/useQueryHistory";
+import { useRouter } from "next/router";
 
 // TODO: followers filter seems not to return desired results in combination with stars
 export default function Search({
   githubToken,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
-  const [sortedBy, setSortedBy] = useState<"stars" | "forks">();
+  const [sortedBy, setSortedBy] = useState<SortedBy>();
   const queryInputRef = useRef<HTMLInputElement>(null);
   const starsInputRef = useRef<HTMLInputElement>(null);
   const languageInputRef = useRef<HTMLInputElement>(null);
   const [queryConfig, setQueryConfig] = useState<QueryConfig>();
-  console.log("githubToken", githubToken);
+  const { addQueryToHistory, queryHistory } = useQueryHistory();
+  const { query } = useRouter();
 
   const octokit = useMemo(
     () =>
@@ -29,6 +32,17 @@ export default function Search({
       }),
     [githubToken]
   );
+
+  useEffect(() => {
+    const thisQuery = query as unknown as QueryConfig;
+    setQueryConfig(thisQuery);
+    if (queryInputRef.current) queryInputRef.current.value = thisQuery.q || "";
+    if (starsInputRef.current)
+      starsInputRef.current.value = thisQuery.starsFilter || "";
+    if (languageInputRef.current)
+      languageInputRef.current.value = thisQuery.languageFilter || "";
+    setSortedBy(thisQuery.sortedBy);
+  }, [query]);
 
   const searchRepo = () => {
     setQueryConfig({
@@ -47,13 +61,7 @@ export default function Search({
       enabled: !!queryConfig?.q && queryConfig.q.length > 2,
       onSuccess: () => {
         // Add the current query to the query history list
-        // setQueryHistory((prevHistory) => {
-        //   const updatedHistory = [
-        //     JSON.stringify(["fetchRepos", ...queryVars]),
-        //     ...prevHistory.slice(0, 9),
-        //   ]; // Keep the list limited to 10 items
-        //   return updatedHistory;
-        // });
+        queryConfig && addQueryToHistory(JSON.stringify(queryConfig));
       },
     }
   );
