@@ -1,3 +1,5 @@
+NB: In order to run the dev server you need to pass in your Github personal token -> `NEXT_MY_GITHUB_TOKEN=[...] npm run dev`
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
